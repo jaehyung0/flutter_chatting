@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "402773608550",
+    "project_id": "flutter-chat-b1513",
+    "storage_bucket": "flutter-chat-b1513.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:402773608550:android:043c9d0a0bf712dd1345a7",
+        "android_client_info": {
+          "package_name": "com.example.chatting"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "402773608550-8l25ekulq8l24p61kh05bkijpg40ufcn.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDORX_6z6hnOu6YDKOJbHAICLiHse-CMqk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "402773608550-8l25ekulq8l24p61kh05bkijpg40ufcn.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
