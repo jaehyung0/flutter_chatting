@@ -1,5 +1,7 @@
+import 'dart:io';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:chatting/add_image/add_image.dart';
 import 'package:chatting/config/palette.dart';
-import 'package:chatting/screens/chat_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
@@ -21,6 +23,25 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
   String userName = '';
   String userEmail = '';
   String userPassword = '';
+
+  File? userPickedImage;
+
+  void pickedImage(File image){
+    userPickedImage = image;
+  }
+
+
+  void showAlert(BuildContext context){
+    showDialog(
+        context: context,
+        builder: (context){
+          return Dialog(
+            backgroundColor: Colors.white,
+            child: AddImage(pickedImage)
+          );
+        }
+    );
+  }
 
   void _tryValidation(){
     final isValid = _formKey.currentState!.validate();
@@ -48,7 +69,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                   left: 0,
                   child: Container(
                     height: 300,
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       image: DecorationImage(
                         image: AssetImage('image/red.jpg'),
                         fit: BoxFit.fill
@@ -159,17 +180,34 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                 },
                                 child: Column(
                                   children: [
-                                    Text(
-                                        'SIGN UP',
-                                        style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                            color: isSignupScreen ? Palette.activeColor :Palette.textColor1
+                                    Row(
+                                      children: [
+                                        Text(
+                                            'SIGN UP',
+                                            style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                                color: isSignupScreen ? Palette.activeColor :Palette.textColor1
+                                            )
+                                        ),
+                                        SizedBox(
+                                          width:15
+                                        ),
+                                        if(isSignupScreen)
+                                        GestureDetector(
+                                          onTap: (){
+                                            showAlert(context);
+                                          },
+                                          child: Icon(
+                                            Icons.image,
+                                            color: isSignupScreen ? Colors.cyan : Colors.grey[300],
+                                          ),
                                         )
+                                      ],
                                     ),
                                     if(isSignupScreen)
                                     Container(
-                                      margin: EdgeInsets.only(top:3),
+                                      margin: EdgeInsets.fromLTRB(0, 3, 35, 0),
                                       height: 2,
                                       width: 55,
                                       color: Colors.orange,
@@ -435,6 +473,20 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                             showSpinner = true;
                           });
                           if(isSignupScreen){
+                            if(userPickedImage == null){
+                              setState((){
+                                showSpinner = false;
+                              });
+
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content:
+                                    Text('Please pick your Image'),
+                                    backgroundColor: Colors.blue,
+                                  )
+                              );
+                              return;
+                            }
                             _tryValidation();
 
                             try {
@@ -444,9 +496,19 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                   password: userPassword
                               );
 
+                              final refImage = FirebaseStorage.instance.ref().child('picked_image').child(newUser.user!.uid + '.png');
+
+                              await refImage.putFile(userPickedImage!);
+                              final url = await refImage.getDownloadURL();
+
+
                               //firebase datastore에 user정보 등록하는 법법
                              await FirebaseFirestore.instance.collection('user').doc(newUser.user!.uid)
-                                  .set({'userName': userName, 'email':userEmail});
+                                  .set({
+                                  'userName': userName,
+                                  'email':userEmail,
+                                  'picked_image': url
+                                  });
 
                               if(newUser.user != null){
                                /* Navigator.push(context, MaterialPageRoute(
@@ -458,15 +520,18 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                                   showSpinner = false;
                                 });
                               }
-                            }catch(e){
+                            }catch(e) {
                               print(e);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content:
-                                    Text('Please check your email and password'),
-                                    backgroundColor: Colors.blue,
-                                  )
-                              );
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content:
+                                      Text(
+                                          'Please check your email and password'),
+                                      backgroundColor: Colors.blue,
+                                    )
+                                );
+                              }
                             }
                           }
                           //로그인할때
